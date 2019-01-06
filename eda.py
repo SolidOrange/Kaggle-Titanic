@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 df = pd.read_csv('data/train.csv')
-fig = plt.figure(figsize=(18,30))
+fig = plt.figure(figsize=(18,400))
 plt.subplots_adjust(hspace = 0.8)
 
 plt.subplot2grid((5,3),(0,0))
