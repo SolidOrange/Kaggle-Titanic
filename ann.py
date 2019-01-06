@@ -51,6 +51,7 @@ X_test = sc.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense # The hidden layers
+from keras.layers import Dropout
 
 # Initialize ANN
 classifier = Sequential()
