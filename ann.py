@@ -109,6 +109,8 @@ variance = accuracies.std()
 from keras.wrappers.scikit_learn import KerasClassifier 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from scipy.stats import randint as sp_randint
+from scipy.stats import uniform
 
 def build_classifier(optimizer, number_of_neurons, dropout_rate): # Needed for KerasClassifier
     classifier = Sequential()  
@@ -123,17 +125,17 @@ def build_classifier(optimizer, number_of_neurons, dropout_rate): # Needed for K
 classifier = KerasClassifier(build_fn=build_classifier)
 
 parameters = {
-                'batch_size':[1,8,16,25,32],
-                'epochs':[10,25,100,500],
+                'batch_size': sp_randint(1,100),
+                'epochs':sp_randint(10,500),
                 'optimizer':['adam','rmsprop'],
-                'number_of_neurons': [3,5,10,50,100],
-                'dropout_rate': [0.0,0.1,0.2,0.3,0.5,0.75]
+                'number_of_neurons': sp_randint(3,100),
+                'dropout_rate': uniform(0.0,0.75)
               }
 
 # Use Random Search instead of Grid Search
 rs = RandomizedSearchCV(estimator=classifier, 
                         param_distributions=parameters,
-                        n_iter=5,
+                        n_iter=10,
                         scoring='accuracy',
                         cv=5,
                         verbose=1
