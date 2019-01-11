@@ -55,21 +55,21 @@ from keras.layers import Dropout
 classifier = Sequential()
 
 # Adding the input layer and first hidden layer
-classifier.add(Dense(100, kernel_initializer='uniform', activation='relu', input_shape=(9,))) # Output dim is based on nodes in input layer + output layer divided by 2
-classifier.add(Dropout(rate=0.3))
+classifier.add(Dense(70, kernel_initializer='uniform', activation='relu', input_shape=(9,))) # Output dim is based on nodes in input layer + output layer divided by 2
+classifier.add(Dropout(rate=0.5))
 
 # Add second hidden layer
-classifier.add(Dense(100, kernel_initializer='uniform', activation='relu'))
-classifier.add(Dropout(rate=0.3))
+classifier.add(Dense(70, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dropout(rate=0.5))
 
 # Add output layer
 classifier.add(Dense(1, kernel_initializer='uniform', activation='sigmoid'))
 
 # Compile the ANN using stochastic gradient descent
-classifier.compile('adam', 'binary_crossentropy', metrics=['accuracy']) # Loss function is determined because we're using a binary sigmoid in the output
+classifier.compile('rmsprop', 'binary_crossentropy', metrics=['accuracy']) # Loss function is determined because we're using a binary sigmoid in the output
 
 # Fit the ANN to the training set
-classifier.fit(X_train, y_train, batch_size=25, epochs=100)
+classifier.fit(X_train, y_train, batch_size=100, epochs=215)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
@@ -89,16 +89,16 @@ from sklearn.model_selection import cross_val_score
 # Wrap Keras functionality to use sklearn's K-Fold CV capabilities. 
 def build_classifier(): # Needed for KerasClassifier
     classifier = Sequential()  
-    classifier.add(Dense(100, kernel_initializer='uniform', activation='relu', input_shape=(9,))) 
-    classifier.add(Dropout(rate=0.3))
-    classifier.add(Dense(100, kernel_initializer='uniform', activation='relu'))
-    classifier.add(Dropout(rate=0.3))
+    classifier.add(Dense(70, kernel_initializer='uniform', activation='relu', input_shape=(9,))) 
+    classifier.add(Dropout(rate=0.5))
+    classifier.add(Dense(70, kernel_initializer='uniform', activation='relu'))
+    classifier.add(Dropout(rate=0.5))
     classifier.add(Dense(1, kernel_initializer='uniform', activation='sigmoid'))
-    classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']) 
+    classifier.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy']) 
     return classifier
 
-classifier = KerasClassifier(build_fn=build_classifier, batch_size=25, epochs=100)
-accuracies = cross_val_score(estimator=classifier, X=X_train, y=y_train, cv=10, n_jobs=1)
+classifier = KerasClassifier(build_fn=build_classifier, batch_size=100, epochs=215)
+accuracies = cross_val_score(estimator=classifier, X=X_train, y=y_train, cv=5, n_jobs=1)
 
 mean = accuracies.mean()
 variance = accuracies.std()
