@@ -130,7 +130,6 @@ parameters = {
                 'dropout_rate': [0.0,0.1,0.2,0.3,0.5,0.75]
               }
 
-
 # Use Random Search instead of Grid Search
 rs = RandomizedSearchCV(estimator=classifier, 
                         param_distributions=parameters,
