@@ -9,18 +9,44 @@ Work Needed:
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+
 
 # Importing the dataset
 df_train = pd.read_csv('data/train.csv')
 df_test = pd.read_csv('data/test.csv')
 dataset = df_train.append(df_test, ignore_index=True, sort=True)
 
-# Replace NaNs
-dataset.Embarked.fillna('S' , inplace=True )
-dataset.Age.fillna(30 , inplace=True )
-dataset.Fare.fillna(33.30 , inplace=True )
+# Replace NaNs and Feature Engineering
+x = lambda a : a['Name'].split(",")[1].split()[0]
+dataset['Title'] = dataset.apply(x, axis=1)
+Title_Dictionary = {
+        "Capt.":       "Officer",
+        "Col.":        "Officer",
+        "Major.":      "Officer",
+        "Dr.":         "Officer",
+        "Rev.":        "Officer",
+        "Jonkheer.":   "Royalty",
+        "Don.":        "Royalty",
+        "Sir." :       "Royalty",
+        "the":"Royalty",
+        "Dona.":       "Royalty",
+        "Lady." :      "Royalty",
+        "Mme.":        "Mrs",
+        "Ms.":         "Mrs",
+        "Mrs." :       "Mrs",
+        "Mlle.":       "Miss",
+        "Miss." :      "Miss",
+        "Mr." :        "Mr",
+        "Master." :    "Master"
+}
+dataset['Title'] = dataset.Title.map(Title_Dictionary)
+dataset.loc[dataset.Age.isnull(), 'Age'] = dataset.groupby(['Sex','Pclass','Title']).Age.transform('median')
+dataset.loc[dataset.Fare.isnull(), 'Fare'] = dataset.groupby(['Sex','Pclass','Title']).Fare.transform('median')
+dataset['Embarked'] = dataset['Embarked'].fillna(dataset['Embarked'].mode()[0])
 
-X = dataset.iloc[:,[0,2,3,5,7,8,9]]
+
+X = dataset.iloc[:,[0,2,3,5,7,8,9,12]]
 y = dataset.iloc[:, 10]
 
 # Encoding categorical data
@@ -31,7 +57,10 @@ X.iloc[:,1] = labelencoder_X_1.fit_transform(X.iloc[:,1])
 labelencoder_X_5 = LabelEncoder()
 X.iloc[:,5] = labelencoder_X_5.fit_transform(X.iloc[:, 5])
 
-onehotencoder = OneHotEncoder(categorical_features = [1])
+labelencoder_X_7 = LabelEncoder()
+X.iloc[:,7] = labelencoder_X_7.fit_transform(X.iloc[:, 7])
+
+onehotencoder = OneHotEncoder(categorical_features = [1,7])
 X = onehotencoder.fit_transform(X).toarray()
 
 # Split into sets
@@ -55,12 +84,12 @@ from keras.layers import Dropout
 classifier = Sequential()
 
 # Adding the input layer and first hidden layer
-classifier.add(Dense(70, kernel_initializer='uniform', activation='relu', input_shape=(9,))) # Output dim is based on nodes in input layer + output layer divided by 2
-classifier.add(Dropout(rate=0.5))
+classifier.add(Dense(16, kernel_initializer='uniform', activation='relu', input_shape=(15,))) # Output dim is based on nodes in input layer + output layer divided by 2
+classifier.add(Dropout(rate=0.6))
 
 # Add second hidden layer
-classifier.add(Dense(70, kernel_initializer='uniform', activation='relu'))
-classifier.add(Dropout(rate=0.5))
+classifier.add(Dense(16, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dropout(rate=0.6))
 
 # Add output layer
 classifier.add(Dense(1, kernel_initializer='uniform', activation='sigmoid'))
@@ -69,7 +98,7 @@ classifier.add(Dense(1, kernel_initializer='uniform', activation='sigmoid'))
 classifier.compile('rmsprop', 'binary_crossentropy', metrics=['accuracy']) # Loss function is determined because we're using a binary sigmoid in the output
 
 # Fit the ANN to the training set
-classifier.fit(X_train, y_train, batch_size=100, epochs=215)
+classifier.fit(X_train, y_train, batch_size=15, epochs=150)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
@@ -89,7 +118,7 @@ from sklearn.model_selection import cross_val_score
 # Wrap Keras functionality to use sklearn's K-Fold CV capabilities. 
 def build_classifier(): # Needed for KerasClassifier
     classifier = Sequential()  
-    classifier.add(Dense(70, kernel_initializer='uniform', activation='relu', input_shape=(9,))) 
+    classifier.add(Dense(70, kernel_initializer='uniform', activation='relu', input_shape=(15,))) 
     classifier.add(Dropout(rate=0.5))
     classifier.add(Dense(70, kernel_initializer='uniform', activation='relu'))
     classifier.add(Dropout(rate=0.5))
@@ -114,7 +143,7 @@ from scipy.stats import uniform
 
 def build_classifier(optimizer, number_of_neurons, dropout_rate): # Needed for KerasClassifier
     classifier = Sequential()  
-    classifier.add(Dense(number_of_neurons, kernel_initializer='uniform', activation='relu', input_shape=(9,))) 
+    classifier.add(Dense(number_of_neurons, kernel_initializer='uniform', activation='relu', input_shape=(15,))) 
     classifier.add(Dropout(rate=dropout_rate))
     classifier.add(Dense(number_of_neurons, kernel_initializer='uniform', activation='relu'))
     classifier.add(Dropout(rate=dropout_rate))
